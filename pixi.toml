@@ -1,0 +1,40 @@
+[workspace]
+name = "agent-demo"
+description = "Local LLM agent demos for a bioinformatics facility (Ollama + Qwen)"
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "osx-arm64"]
+
+[dependencies]
+python = "3.12.*"
+ollama = "*"            # the Ollama server itself
+ollama-python = "*"     # the Python client (import ollama)
+fastqc = "*"
+bwa = "*"
+samtools = "*"
+
+[target.linux-64.dependencies]
+bubblewrap = "*"        # the sandbox for `pipeline` on Linux (macOS has sandbox-exec built in)
+
+[activation.env]
+# Change the model here, then: pixi run pull
+# (A value set in your shell is ignored: pixi sets this one.)
+AGENT_MODEL = "qwen3:14b"
+# Qwen3 thinking: "1" helps the agents plan, but makes each step several minutes slower.
+AGENT_THINK = "0"
+
+[tasks]
+# 1. In a separate terminal, keep the model server running:
+serve = "ollama serve"
+# 2. Download the model once:
+pull = "ollama pull $AGENT_MODEL"
+
+# Demo 1: single agent, fixed tools (QC check + resequencing queue)
+qc-demo = "python facility_agent_demo.py"
+
+# Demo 2: controller + coding agents per step folder
+init = "python pipeline_agents.py init demo_project"
+# no prompts; the OS sandbox only lets each agent write in its own step folder
+pipeline = { cmd = "python pipeline_agents.py run demo_project --sandbox", depends-on = ["init"] }
+# asks y/N before every command; answer N to type a hint for the agent
+pipeline-ask = { cmd = "python pipeline_agents.py run demo_project", depends-on = ["init"] }
+reset = "rm -rf demo_project demo_run"
