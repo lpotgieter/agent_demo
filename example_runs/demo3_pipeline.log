@@ -1,0 +1,38 @@
+[11:29:37] bwa index ref/ref.fa
+Tool returned:
+0
+[11:29:38] trim acc01_run1
+[11:29:38] align acc01_run1 (acc01)
+[11:29:38] dedup acc01
+[11:29:38] HaplotypeCaller acc01
+[11:29:40] trim acc02_run1
+[11:29:40] align acc02_run1 (acc02)
+[11:29:40] trim acc02_run2
+[11:29:40] align acc02_run2 (acc02)
+[11:29:40] merge 2 runs of acc02
+[11:29:40] dedup acc02
+[11:29:40] HaplotypeCaller acc02
+[11:29:42] trim acc03_run1
+[11:29:42] align acc03_run1 (acc03)
+[11:29:42] dedup acc03
+samtools markdup: warning, unable to calculate estimated library size. Read pairs 1672 should be greater than duplicate pairs 0, which should both be non zero.
+
+[11:29:42] HaplotypeCaller acc03
+[11:29:44] trim acc04_run1
+[11:29:44] align acc04_run1 (acc04)
+[11:29:44] dedup acc04
+[11:29:44] HaplotypeCaller acc04
+[11:29:46] trim acc05_run1
+[11:29:46] align acc05_run1 (acc05)
+[11:29:46] dedup acc05
+[11:29:46] HaplotypeCaller acc05
+[11:29:48] wrote results/qc/metrics.tsv
+[11:29:48] joint genotyping: acc01 acc02 acc03 acc04 acc05
+[11:29:50] wrote results/vcf/raw.vcf.gz
+
+accession  runs  read_pairs  kept_pct  mapped_pct  dup_pct  mean_depth  breadth_pct
+acc01      1     8000        100.0     100.0       0.1      40.0        100.0
+acc02      2     8000        100.0     100.0       0.1      40.0        100.0
+acc03      1     8000        21.0      99.7        0.0      2.8         94.2
+acc04      1     8000        100.0     79.5        0.1      31.8        100.0
+acc05      1     10800       100.0     100.0       26.0     40.0        100.0

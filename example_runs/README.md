@@ -1,4 +1,36 @@
-# Example runs of Demo 2 (21 Oct 2026, macOS, `--sandbox`)
+# Example runs
+
+Full terminal output of test runs, to show in class or compare with your own runs.
+Demo 2 is further down.
+
+## Demo 3: variant pipeline + review agent (22 Oct 2026, macOS, qwen3:14b)
+
+The toy data has a known right answer: exclude or resequence acc03 (poor quality,
+2.8x), keep everything else. acc04 (20% contamination) and acc05 (26% PCR duplicates)
+still have 31.8x and 40x of good data, and all their SNPs are called correctly.
+
+| Log | What it shows |
+|---|---|
+| [demo3_pipeline.log](demo3_pipeline.log) | The pipeline alone, no LLM: 15 seconds, and the QC table where each accession shows its built-in problem. Every true SNP is called, with no false positives (acc03: 25 of 38, because of its low depth). |
+| [demo3_guardrails.log](demo3_guardrails.log) | A **scripted fake model** tries every forbidden action: a FAIL accession in the VCF, a REVIEW accession before a decision, keeping a FAIL, resequencing a PASS, a reason without numbers, a report without the variant count or with accessions missing, finishing early. Each one is refused. |
+| [demo3_review1.log](demo3_review1.log) | Qwen, first version. Finished in 5 calls (2.2 min), no getting stuck, numbers cited. But it wrote all its decisions, the genotyping and the report **in one reply** (#5), before seeing any result: it **excluded every REVIEW accession** (losing two good ones) and the report has no variant count. |
+| [demo3_review2.log](demo3_review2.log) | After a code check (report must state the real variant count) and two prompt lines ("REVIEW means look closer, not exclude"; one tool call at a time). 10 calls, 2.2 min, one step at a time. **Keeps acc04**, reports the correct 54 sites, but **still excludes acc05** (40x after duplicate removal) and never names contamination for acc04. |
+
+Both Qwen runs ran without a terminal, so every proposal ended up "pending". Run
+`pixi run variants` yourself to see the sign-off step, and reject the acc05 exclusion.
+
+### Things to point out in class
+
+- **Fixed tools turn a failing agent into a finishing one**: no stuck runs, ~2 minutes
+  instead of 10–40 (compare with Demo 2 below).
+- **Guardrails stop forbidden actions, not bad allowed ones.** Excluding good data is
+  allowed, so only a person catches it.
+- **Code can force the order of work** (the report needs the real result), a prompt only
+  asks for it.
+- **Policy in the prompt helped, but did not guarantee** the right call (acc04 fixed,
+  acc05 not).
+
+## Demo 2: controller + coding agents (21 Oct 2026, macOS, `--sandbox`)
 
 Full terminal output of 13 test runs of `pipeline_agents.py`. After each run the
 code was changed to fix what went wrong, so each run shows a later version of the
@@ -21,7 +53,7 @@ small local model fails as a coding agent, and what each guardrail catches.
 | [12](run12.log) | qwen3:14b | thinking, step 2 only | Right reference and samples, `bam/sample_A.sorted.bam` built. `awk '/mapped/'` matches 5 lines of `flagstat`, so `bc` fails with an unhelpful error (38 min; one reply hit the 8192 cap). | Exact `flagstat -O tsv` command in the notes. |
 | [13](run13.log) | qwen3:14b | no thinking, step 2 only | "Copies" the reference with `write_file('ref.fa', 'ref.fa')`, a 6-byte fake that `bwa index` accepts. Calls `report_blocked` after 9 calls, with a wrong diagnosis. | `write_file` says to copy with `cp`. |
 
-## Things to point out in class
+### Things to point out in class
 
 - **The controller, not the agent, decides when a step is done** (runs 04, 05, 08).
 - **Ask in the prompt, enforce in code.** Every lasting fix was code: guards,

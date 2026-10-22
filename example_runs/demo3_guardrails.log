@@ -1,0 +1,52 @@
+# Scripted FAKE model (no LLM): each step tries a forbidden action to test the guardrails.
+# The 'Review agent (qwen3:14b)' line below is printed by the script; no model was called.
+
+Pipeline results exist; skipping the pipeline (delete results/ to rerun it).
+
+QC status from the fixed rules:
+  acc01: PASS   
+  acc02: PASS   
+  acc03: FAIL   only 21.0% of reads kept after trimming (< 50); mean depth 2.8x (< 10); 94.2% of the genome covered (< 95)
+  acc04: REVIEW 79.5% mapped (< 95)
+  acc05: REVIEW 26.0% duplicates (> 20)
+
+Review agent (qwen3:14b):
+  [review #1] get_qc_table({})
+  [review #2] run_joint_genotyping({'accessions': 'acc01,acc03'})
+      -> REFUSED: acc03 FAILED QC and cannot go into the VCF.
+  [review #3] run_joint_genotyping({'accessions': 'acc01,acc04'})
+      -> REFUSED: acc04 need review first. Look at the details and call propose_action(..., 'keep', reason) if they should be included.
+  [review #4] propose_action({'accession': 'acc03', 'action': 'keep', 'reason': 'depth 2.8x'})
+      -> REFUSED: acc03 FAILED a hard QC rule and cannot be kept in the VCF.
+  [review #5] propose_action({'accession': 'acc01', 'action': 'resequence', 'reason': 'more depth 40x'})
+      -> REFUSED: acc01 passed all QC rules; resequencing it would waste money.
+  [review #6] propose_action({'accession': 'acc04', 'action': 'keep', 'reason': 'looks fine'})
+      -> REFUSED: cite the QC numbers your decision is based on.
+  [review #7] get_details({'accession': 'acc04'})
+  [review #8] propose_action({'accession': 'acc03', 'action': 'resequence', 'reason': 'only 21% kept, 2.8x depth'})
+  [review #9] propose_action({'accession': 'acc04', 'action': 'keep', 'reason': '79.5% mapped, 31.8x depth'})
+  [review #10] propose_action({'accession': 'acc05', 'action': 'keep', 'reason': '26% duplicates removed, 40x left'})
+  [review #11] run_joint_genotyping({'accessions': 'acc01,acc02,acc04,acc05'})
+      (running GATK joint genotyping on acc01, acc02, acc04, acc05 ...)
+[11:30:07] joint genotyping: acc01 acc02 acc04 acc05
+[11:30:09] wrote results/vcf/raw.vcf.gz
+  [review #12] write_report({'content': '<16 chars>'})
+      -> Not saved: the report must state the number of variant sites from the joint genotyping result.
+  [review #13] finish({'summary': 'x'})
+      -> Not finished yet. Still to do: write_report
+  [review #14] write_report({'content': '<42 chars>'})
+      -> Not saved: the report must state the number of variant sites from the joint genotyping result.
+  [review #15] write_report({'content': '<47 chars>'})
+  [review #16] finish({'summary': 'Reviewed 5 accessions.'})
+
+Agent: Reviewed 5 accessions.
+
+Proposals for your approval:
+  acc03 (FAIL): resequence. only 21% kept, 2.8x depth
+  acc04 (REVIEW): keep. 79.5% mapped, 31.8x depth
+  acc05 (REVIEW): keep. 26% duplicates removed, 40x left
+
+Joint genotyping used: acc01, acc02, acc04, acc05
+Written: report.md (agent), decisions.tsv (your sign-off), results/vcf/raw.vcf.gz
+If you rejected a 'keep', rerun joint genotyping without it:
+  cd variant_project && bash /Users/llpo0001/agent-demo/agent_demo/variant_pipeline/pipeline.sh joint <accessions>
