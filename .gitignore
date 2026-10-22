@@ -1,0 +1,6 @@
+/.pixi/
+/demo/
+/demo_run/
+/demo_project/
+/variant_project/
+__pycache__/

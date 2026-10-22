@@ -11,6 +11,9 @@ ollama-python = "*"     # the Python client (import ollama)
 fastqc = "*"
 bwa = "*"
 samtools = "*"
+# Demo 3 / variant pipeline
+fastp = "*"             # paired-end quality trimming (replaces fastq_quality_trimmer + repair.sh)
+gatk4 = "*"             # HaplotypeCaller, CombineGVCFs, GenotypeGVCFs
 
 [target.linux-64.dependencies]
 bubblewrap = "*"        # the sandbox for `pipeline` on Linux (macOS has sandbox-exec built in)
@@ -37,4 +40,9 @@ init = "python pipeline_agents.py init demo_project"
 pipeline = { cmd = "python pipeline_agents.py run demo_project --sandbox", depends-on = ["init"] }
 # asks y/N before every command; answer N to type a hint for the agent
 pipeline-ask = { cmd = "python pipeline_agents.py run demo_project", depends-on = ["init"] }
-reset = "rm -rf demo_project demo_run"
+
+# Demo 3: the pipeline runs the scripts, the agent reviews the results
+variants-init = "python variant_review_agent.py init variant_project"
+variants = { cmd = "python variant_review_agent.py run variant_project", depends-on = ["variants-init"] }
+
+reset = "rm -rf demo_project demo_run variant_project"

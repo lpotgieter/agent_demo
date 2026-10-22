@@ -1,7 +1,7 @@
 
 # Agent demos: Ollama + Qwen 
 
-Everything (Python, Ollama, FastQC, bwa, samtools) comes from `pixi.toml`.
+Everything (Python, Ollama, FastQC, fastp, bwa, samtools, GATK) comes from `pixi.toml`.
 Install [Pixi](https://pixi.sh) first, then from this folder:
 
 ```bash
@@ -29,7 +29,7 @@ code-level guardrail refusing a passing sample.
 ```bash
 pixi run pipeline       # no prompts; each agent runs in an OS sandbox
 pixi run pipeline-ask   # asks y/N before every command; answer N to type a hint
-pixi run reset          # wipe both demos and start over
+pixi run reset          # wipe all demos and start over
 ```
 
 `WORKFLOW.md` lists the step folders; each folder has a `TASK.md`. The controller
@@ -56,6 +56,27 @@ command works better than a warning in prose.
 `init` copies the notes into `demo_project/notes/` only if they are missing, so
 after editing `notes/`, run `pixi run reset` (or delete the copy) to pick up the
 change.
+
+## Demo 3: the pipeline runs the scripts, the agent reviews the results
+
+```bash
+pixi run variants       # toy data, the variant pipeline, then the review agent
+```
+
+The analysis itself is a fixed script, `variant_pipeline/pipeline.sh` (fastp, bwa
+mem, samtools markdup, GATK HaplotypeCaller, joint genotyping; see its README).
+Fixed rules mark each accession PASS, REVIEW or FAIL. The agent writes no commands:
+it can only call a few tools, which enforce the rules. It looks at the REVIEW and
+FAIL accessions, proposes keep, exclude or resequence (citing the numbers), chooses
+the accessions for joint genotyping, and writes `variant_project/report.md`. You
+approve or reject each proposal at the end; your decisions go to `decisions.tsv`.
+
+The toy data has five haploid accessions: two good ones (one resequenced over two
+runs), one poor-quality run, one 20% contaminated, one with 26% PCR duplicates.
+`variant_project/truth.tsv` lists the true SNPs, to check the VCF against.
+
+The pipeline runs once (about 15 seconds); after that only the review agent runs.
+Delete `variant_project/results/` to rerun the pipeline.
 
 ## Settings
 
