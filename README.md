@@ -1,3 +1,7 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/wiforce_vit.png">
+  <img src="assets/wiforce_gron.png" alt="WIFORCE: Wallenberg Initiatives in Forest Research" width="320">
+</picture>
 
 # Agent demos: Ollama + Qwen 
 
